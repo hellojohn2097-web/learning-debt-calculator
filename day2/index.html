@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Skill-Stack Gap Analysis | ThriveLine Circle - Day 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --thriveline-red: #dc2626;
+            --thriveline-dark-red: #991b1b;
+            --thriveline-black: #0a0a0a;
+            --thriveline-gray: #1f1f1f;
+            --thriveline-light-gray: #374151;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--thriveline-black);
+            color: #fafafa;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+        }
+        
+        h1, h2, h3, .display-font {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #b91c1c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glass-panel {
+            background: rgba(31, 31, 31, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .input-field {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .input-field:focus {
+            border-color: #dc2626;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+            transition: width 1s ease-out;
+        }
+        
+        .skill-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(220, 38, 38, 0.6);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.2);
+        }
+        
+        .skill-card.selected {
+            background: rgba(220, 38, 38, 0.15);
+            border-color: #dc2626;
+            box-shadow: 0 0 25px rgba(220, 38, 38, 0.4);
+        }
+        
+        .gap-indicator {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%);
+            border-left: 4px solid #dc2626;
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.1em;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+        }
+        
+        .tier-badge {
+            background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .heat-low { background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: #10b981; }
+        .heat-med { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: #f59e0b; }
+        .heat-high { background: rgba(220, 38, 38, 0.2); color: #ef4444; border-color: #ef4444; }
+        
+        .logo-spin {
+            animation: spin 20s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(220, 38, 38, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(220, 38, 38, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+    </style>
+</head>
+<body class="min-h-screen grid-bg">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-red-900/20">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 relative">
+                    <svg viewBox="0 0 100 100" class="w-full h-full logo-spin">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="10 5" opacity="0.3"/>
+                        <path d="M50 10 L55 35 L80 30 L60 50 L80 70 L55 65 L50 90 L45 65 L20 70 L40 50 L20 30 L45 35 Z" fill="#dc2626"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="display-font font-bold text-xl tracking-wider text-white">THRIVELINE CIRCLE</span>
+                    <p class="text-xs text-red-500 tracking-widest uppercase">unifying systems that drive growth</p>
+                </div>
+            </div>
+            <div class="text-sm text-gray-400 font-medium tracking-wide">DAY 2 OF 5: THE CLARITY AUDIT</div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-6 font-medium tracking-wide">
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                SKILL-STACK GAP ANALYSIS
+            </div>
+            <h1 class="display-font text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                THE <span class="gradient-text">SKILL-STACK</span><br>GAP ANALYSIS
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-8 leading-relaxed font-light">
+                Yesterday you discovered your Learning Debt. Today, we map exactly which skills you've acquired versus which ones actually drive revenue. Most entrepreneurs are <span class="text-red-400 font-semibold">3 skills away</span> from their first $10K month—but they're building the wrong ones.
+            </p>
+        </div>
+    </section>
+
+    <!-- Calculator Interface -->
+    <section class="pb-24 px-4">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Progress Indicator -->
+            <div class="mb-12 max-w-2xl mx-auto">
+                <div class="flex justify-between text-sm text-gray-500 mb-2 font-medium tracking-wide">
+                    <span class="text-red-400">01. LEARNING DEBT</span>
+                    <span class="text-white">02. SKILL GAP</span>
+                    <span>03. AI SCORECARD</span>
+                    <span>04. CONFIDENCE METER</span>
+                    <span>05. ROADMAP</span>
+                </div>
+                <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div id="progressBar" class="progress-bar h-full w-0 rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- Input Stage -->
+            <div id="inputStage" class="space-y-8">
+                
+                <!-- Current Skills Inventory -->
+                <div class="glass-panel rounded-2xl p-8 slide-in" style="animation-delay: 0.1s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400 border border-red-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="display-font text-2xl font-bold text-white">CURRENT SKILLS INVENTORY</h2>
+                            <p class="text-sm text-gray-500">Select all skills you've invested time in learning (not just dabbled)</p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-4" id="skillsGrid">
+                        <!-- Technical Skills -->
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="technical" data-value="web-dev">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold">01</div>
+                                <div>
+                                    <div class="font-semibold text-white">Web Development</div>
+                                    <div class="text-xs text-gray-500">HTML/CSS/JS, React, etc.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="technical" data-value="ai-automation">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-xs font-bold">02</div>
+                                <div>
+                                    <div class="font-semibold text-white">AI & Automation</div>
+                                    <div class="text-xs text-gray-500">ChatGPT, Zapier, n8n</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="technical" data-value="data-analysis">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 text-xs font-bold">03</div>
+                                <div>
+                                    <div class="font-semibold text-white">Data Analysis</div>
+                                    <div class="text-xs text-gray-500">Excel, SQL, Python</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Marketing Skills -->
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="marketing" data-value="copywriting">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">04</div>
+                                <div>
+                                    <div class="font-semibold text-white">Copywriting</div>
+                                    <div class="text-xs text-gray-500">Sales pages, emails, ads</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="marketing" data-value="content-creation">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 text-xs font-bold">05</div>
+                                <div>
+                                    <div class="font-semibold text-white">Content Creation</div>
+                                    <div class="text-xs text-gray-500">Video, graphics, podcasts</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="marketing" data-value="paid-ads">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400 text-xs font-bold">06</div>
+                                <div>
+                                    <div class="font-semibold text-white">Paid Advertising</div>
+                                    <div class="text-xs text-gray-500">Meta, Google, LinkedIn</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Skills -->
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="business" data-value="sales">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-bold">07</div>
+                                <div>
+                                    <div class="font-semibold text-white">Sales & Closing</div>
+                                    <div class="text-xs text-gray-500">Discovery calls, negotiation</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="business" data-value="operations">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs font-bold">08</div>
+                                <div>
+                                    <div class="font-semibold text-white">Operations</div>
+                                    <div class="text-xs text-gray-500">Systems, SOPs, management</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card glass-panel p-4 rounded-xl" data-category="business" data-value="strategy">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-xs font-bold">09</div>
+                                <div>
+                                    <div class="font-semibold text-white">Business Strategy</div>
+                                    <div class="text-xs text-gray-500">Model design, pricing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Connection -->
+                <div class="glass-panel rounded-2xl p-8 slide-in" style="animation-delay: 0.2s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400 border border-red-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="display-font text-2xl font-bold text-white">REVENUE CONNECTION</h2>
+                            <p class="text-sm text-gray-500">Which of your selected skills have directly generated income?</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-sm font-medium text-gray-300 mb-3 block">Select revenue-generating skills (from your selection above)</label>
+                            <div id="revenueSkills" class="grid md:grid-cols-3 gap-3">
+                                <div class="text-gray-500 text-sm italic p-4 text-center glass-panel rounded-xl border border-white/5">Select skills above first</div>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="text-sm font-medium text-gray-300 mb-2 block">Current Monthly Revenue</label>
+                                <select id="currentRevenue" class="input-field w-full px-4 py-3 rounded-xl text-white">
+                                    <option value="0">$0 - Pre-revenue</option>
+                                    <option value="1000">$1,000 - $3,000</option>
+                                    <option value="5000">$3,000 - $7,000</option>
+                                    <option value="10000">$7,000 - $15,000</option>
+                                    <option value="20000">$15,000+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-300 mb-2 block">Target Monthly Revenue (90 days)</label>
+                                <select id="targetRevenue" class="input-field w-full px-4 py-3 rounded-xl text-white">
+                                    <option value="5000">$5,000</option>
+                                    <option value="10000">$10,000</option>
+                                    <option value="20000">$20,000</option>
+                                    <option value="50000">$50,000+</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gap Analysis -->
+                <div class="glass-panel rounded-2xl p-8 slide-in" style="animation-delay: 0.3s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400 border border-red-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="display-font text-2xl font-bold text-white">THE GAP</h2>
+                            <p class="text-sm text-gray-500">What's missing between your skills and your revenue goals?</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="glass-panel p-4 rounded-xl border border-white/5">
+                            <label class="text-sm font-medium text-gray-300 mb-3 block">Your biggest bottleneck right now:</label>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:border-red-500/50 cursor-pointer transition-all">
+                                    <input type="radio" name="bottleneck" value="leads" class="w-4 h-4 text-red-500 focus:ring-red-500 bg-gray-800 border-gray-600">
+                                    <span class="text-sm text-gray-300">Not enough leads/eyeballs</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:border-red-500/50 cursor-pointer transition-all">
+                                    <input type="radio" name="bottleneck" value="conversion" class="w-4 h-4 text-red-500 focus:ring-red-500 bg-gray-800 border-gray-600">
+                                    <span class="text-sm text-gray-300">Leads don't convert to sales</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:border-red-500/50 cursor-pointer transition-all">
+                                    <input type="radio" name="bottleneck" value="delivery" class="w-4 h-4 text-red-500 focus:ring-red-500 bg-gray-800 border-gray-600">
+                                    <span class="text-sm text-gray-300">Can't deliver at scale</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:border-red-500/50 cursor-pointer transition-all">
+                                    <input type="radio" name="bottleneck" value="offer" class="w-4 h-4 text-red-500 focus:ring-red-500 bg-gray-800 border-gray-600">
+                                    <span class="text-sm text-gray-300">Unclear what to sell</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-4 rounded-xl border border-white/5">
+                            <label class="text-sm font-medium text-gray-300 mb-2 block">If you could master ONE skill in the next 30 days, which would move the needle most?</label>
+                            <input type="text" id="prioritySkill" placeholder="e.g., 'Writing high-converting outreach messages'" class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Calculate Button -->
+            <div class="mt-8 text-center">
+                <button onclick="analyzeGap()" class="btn-primary group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg text-white hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-2xl shadow-red-500/25">
+                    <span>ANALYZE MY SKILL-STACK</span>
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
+                <p class="mt-4 text-sm text-gray-500 font-medium tracking-wide">IDENTIFIES YOUR CRITICAL SKILL GAPS IN 60 SECONDS</p>
+            </div>
+
+            <!-- Results Stage (Hidden initially) -->
+            <div id="resultsStage" class="hidden mt-12 space-y-8">
+                
+                <!-- Main Gap Display -->
+                <div class="glass-panel rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-red-600/10 to-black/50"></div>
+                    <div class="relative z-10">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-6 font-medium tracking-wide">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            GAP ANALYSIS COMPLETE
+                        </div>
+                        
+                        <h2 class="display-font text-3xl md:text-4xl font-bold mb-2 text-white">YOUR SKILL-STACK PROFILE</h2>
+                        <div class="text-5xl md:text-6xl font-bold gradient-text mb-4 display-font" id="profileType">THE DABBLER</div>
+                        <p class="text-xl text-gray-400 max-w-2xl mx-auto" id="profileDescription">
+                            Wide surface area, shallow depth. You've collected skills but haven't built the revenue bridge.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Stack Visualization -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="display-font text-lg font-bold mb-4 text-white flex items-center gap-2">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            ACQUIRED SKILLS
+                        </h3>
+                        <div id="acquiredSkillsList" class="space-y-2">
+                            <!-- Dynamic content -->
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/10">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Total Skills</span>
+                                <span class="text-white font-bold" id="totalSkillsCount">0</span>
+                            </div>
+                            <div class="flex justify-between text-sm mt-2">
+                                <span class="text-gray-500">Revenue-Connected</span>
+                                <span class="text-red-400 font-bold" id="revenueSkillsCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="display-font text-lg font-bold mb-4 text-white flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            MISSING CRITICAL SKILLS
+                        </h3>
+                        <div id="missingSkillsList" class="space-y-2">
+                            <!-- Dynamic content -->
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/10">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Priority Gap</span>
+                                <span class="text-red-400 font-bold" id="priorityGap">UNKNOWN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- The Revenue Bridge -->
+                <div class="gap-indicator glass-panel rounded-2xl p-8">
+                    <h3 class="display-font text-2xl font-bold mb-6 text-white">THE REVENUE BRIDGE</h3>
+                    
+                    <div class="relative">
+                        <div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-red-500 to-transparent"></div>
+                        
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div class="w-16 h-16 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center text-red-400 font-bold display-font z-10">NOW</div>
+                                <div class="flex-1">
+                                    <div class="text-sm text-red-400 font-bold mb-1">CURRENT STATE</div>
+                                    <div class="text-white font-semibold" id="currentStateText">$0/month • 0 revenue skills</div>
+                                    <p class="text-sm text-gray-500 mt-1">Scattered expertise without monetization engine</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <div class="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-amber-400 font-bold display-font z-10">GAP</div>
+                                <div class="flex-1">
+                                    <div class="text-sm text-amber-400 font-bold mb-1">THE MISSING LINK</div>
+                                    <div class="text-white font-semibold" id="missingLinkText">Sales & Offer Positioning</div>
+                                    <p class="text-sm text-gray-500 mt-1" id="missingLinkDesc">You have technical skills but lack the commercial bridge to convert them into offers</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <div class="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center text-green-400 font-bold display-font z-10">GOAL</div>
+                                <div class="flex-1">
+                                    <div class="text-sm text-green-400 font-bold mb-1">TARGET STATE (90 DAYS)</div>
+                                    <div class="text-white font-semibold" id="targetStateText">$10,000/month • 3 revenue skills</div>
+                                    <p class="text-sm text-gray-500 mt-1">Stacked expertise with clear monetization path</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- The Prescription -->
+                <div class="glass-panel rounded-2xl p-8 border-l-4 border-red-500">
+                    <h3 class="display-font text-2xl font-bold mb-4 flex items-center gap-3 text-white">
+                        <span class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-sm display-font">02</span>
+                        YOUR SKILL-BUILDING PROTOCOL
+                    </h3>
+                    
+                    <div class="space-y-4 text-gray-300">
+                        <p class="leading-relaxed text-lg">Based on your <span id="protocolType" class="text-red-400 font-semibold">Dabbler</span> profile, stop learning new skills immediately. You have enough. Your 90-day focus:</p>
+                        
+                        <div class="grid md:grid-cols-3 gap-4 mt-6">
+                            <div class="glass-panel p-4 rounded-xl border-t-2 border-red-500">
+                                <div class="text-red-400 font-bold display-font mb-2">DAYS 1-30</div>
+                                <div class="font-semibold text-white mb-2">MONETIZE EXISTING SKILLS</div>
+                                <p class="text-sm text-gray-400">Pick your highest-value acquired skill. Build ONE offer around it. No new learning allowed.</p>
+                            </div>
+                            <div class="glass-panel p-4 rounded-xl border-t-2 border-amber-500">
+                                <div class="text-amber-400 font-bold display-font mb-2">DAYS 31-60</div>
+                                <div class="font-semibold text-white mb-2">FILL THE CRITICAL GAP</div>
+                                <p class="text-sm text-gray-400" id="day31Action">Master <span class="text-amber-400">sales conversations</span> to convert your technical ability into revenue.</p>
+                            </div>
+                            <div class="glass-panel p-4 rounded-xl border-t-2 border-green-500">
+                                <div class="text-green-400 font-bold display-font mb-2">DAYS 61-90</div>
+                                <div class="font-semibold text-white mb-2">STACK FOR SCALE</div>
+                                <p class="text-sm text-gray-400">Add automation/systems to deliver your offer without trading time for money.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                <div>
+                                    <div class="font-semibold text-red-400 mb-1">CRITICAL WARNING</div>
+                                    <p class="text-sm text-gray-400">Do not buy another course until you've generated $5,000 from skills you already possess. Your Learning Debt will compound if you keep stacking theory without commercial application.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Section -->
+                <div class="glass-panel rounded-3xl p-8 md:p-12 text-center bg-gradient-to-br from-red-500/10 to-black/50 border-red-500/30">
+                    <h3 class="display-font text-3xl font-bold mb-4 text-white">BUILD THE BRIDGE. CLOSE THE GAP.</h3>
+                    <p class="text-gray-400 mb-8 max-w-2xl mx-auto">Join 400+ entrepreneurs in ThriveLine Circle. We don't teach you new skills—we help you monetize the ones you already have through our 7-Level Progression System.</p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+                        <div class="flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            SKILL-TO-REVENUE FRAMEWORK
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            AI AUTOMATION TOOLS
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            B2B PLACEMENT PATHWAY
+                        </div>
+                    </div>
+
+                    <form class="max-w-md mx-auto space-y-4" onsubmit="handleSubmit(event)">
+                        <input type="email" placeholder="Enter your email" required class="input-field w-full px-4 py-3 rounded-xl text-white text-center">
+                        <button type="submit" class="btn-primary w-full px-8 py-4 rounded-xl font-bold text-lg text-white hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-2xl shadow-red-500/25">
+                            GET DAYS 3-5 OF THE AUDIT →
+                        </button>
+                    </form>
+                    
+                    <p class="mt-4 text-xs text-gray-500 font-medium tracking-wide">DAY 3 DROPS TOMORROW: THE AI INTEGRATION SCORECARD</p>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between items-center">
+                    <a href="#" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all text-gray-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Back to Day 1
+                    </a>
+                    <button onclick="shareResults()" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all text-gray-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                        Share My Profile
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        // Skill selection handling
+        let selectedSkills = [];
+        let revenueGeneratingSkills = [];
+
+        document.querySelectorAll('.skill-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const skillValue = card.dataset.value;
+                const skillName = card.querySelector('.font-semibold').textContent;
+                
+                if (card.classList.contains('selected')) {
+                    card.classList.remove('selected');
+                    selectedSkills = selectedSkills.filter(s => s.value !== skillValue);
+                } else {
+                    card.classList.add('selected');
+                    selectedSkills.push({ value: skillValue, name: skillName, category: card.dataset.category });
+                }
+                
+                updateRevenueSkills();
+            });
+        });
+
+        function updateRevenueSkills() {
+            const container = document.getElementById('revenueSkills');
+            
+            if (selectedSkills.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-sm italic p-4 text-center glass-panel rounded-xl border border-white/5">Select skills above first</div>';
+                return;
+            }
+            
+            container.innerHTML = selectedSkills.map(skill => `
+                <label class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:border-red-500/50 cursor-pointer transition-all glass-panel">
+                    <input type="checkbox" value="${skill.value}" class="revenue-check w-4 h-4 text-red-500 focus:ring-red-500 bg-gray-800 border-gray-600 rounded">
+                    <span class="text-sm text-gray-300">${skill.name}</span>
+                </label>
+            `).join('');
+            
+            // Add event listeners to new checkboxes
+            document.querySelectorAll('.revenue-check').forEach(check => {
+                check.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        revenueGeneratingSkills.push(e.target.value);
+                    } else {
+                        revenueGeneratingSkills = revenueGeneratingSkills.filter(v => v !== e.target.value);
+                    }
+                });
+            });
+        }
+
+        function analyzeGap() {
+            // Get values
+            const currentRev = parseInt(document.getElementById('currentRevenue').value);
+            const targetRev = parseInt(document.getElementById('targetRevenue').value);
+            const bottleneck = document.querySelector('input[name="bottleneck"]:checked')?.value || 'leads';
+            const prioritySkill = document.getElementById('prioritySkill').value;
+            
+            // Calculate metrics
+            const totalSkills = selectedSkills.length;
+            const revenueSkills = revenueGeneratingSkills.length;
+            const monetizationRate = totalSkills > 0 ? (revenueSkills / totalSkills) * 100 : 0;
+            const revenueGap = targetRev - currentRev;
+            
+            // Determine profile
+            let profileType, profileDesc, protocolType;
+            
+            if (totalSkills <= 2 && revenueSkills === 0) {
+                profileType = 'THE BEGINNER';
+                profileDesc = 'Early accumulation phase. You need depth before breadth—pick one skill and go all-in.';
+                protocolType = 'Beginner';
+            } else if (totalSkills >= 6 && revenueSkills <= 2) {
+                profileType = 'THE DABBLER';
+                profileDesc = 'Wide surface area, shallow depth. You\'ve collected skills but haven\'t built the revenue bridge.';
+                protocolType = 'Dabbler';
+            } else if (totalSkills >= 4 && revenueSkills >= 3 && currentRev < 5000) {
+                profileType = 'THE STARVING ARTIST';
+                profileDesc = 'You have monetizable skills but no commercial engine. You need sales, not more craft.';
+                protocolType = 'Starving Artist';
+            } else if (revenueSkills >= 4 && currentRev >= 5000) {
+                profileType = 'THE SCALER';
+                profileDesc = 'You\'ve proven monetization. Now you need systems to remove yourself from delivery.';
+                protocolType = 'Scaler';
+            } else {
+                profileType = 'THE TRANSITIONER';
+                profileDesc = 'Mid-journey. Some skills monetized, others pending. Focus on the bottleneck.';
+                protocolType = 'Transitioner';
+            }
+            
+            // Determine missing skills based on bottleneck
+            const missingSkills = [];
+            if (bottleneck === 'leads') {
+                missingSkills.push('Lead Generation', 'Content Marketing', 'Outreach Systems');
+            } else if (bottleneck === 'conversion') {
+                missingSkills.push('Sales Conversations', 'Copywriting', 'Offer Positioning');
+            } else if (bottleneck === 'delivery') {
+                missingSkills.push('Operations', 'Automation', 'Team Management');
+            } else if (bottleneck === 'offer') {
+                missingSkills.push('Market Research', 'Offer Design', 'Pricing Strategy');
+            }
+            
+            // Update displays
+            document.getElementById('profileType').textContent = profileType;
+            document.getElementById('profileDescription').textContent = profileDesc;
+            document.getElementById('protocolType').textContent = protocolType;
+            document.getElementById('totalSkillsCount').textContent = totalSkills;
+            document.getElementById('revenueSkillsCount').textContent = revenueSkills;
+            document.getElementById('priorityGap').textContent = missingSkills[0].toUpperCase();
+            
+            // Update lists
+            document.getElementById('acquiredSkillsList').innerHTML = selectedSkills.map(s => `
+                <div class="flex items-center justify-between p-2 rounded bg-white/5">
+                    <span class="text-sm text-gray-300">${s.name}</span>
+                    <span class="text-xs ${revenueGeneratingSkills.includes(s.value) ? 'text-green-400' : 'text-gray-600'}">
+                        ${revenueGeneratingSkills.includes(s.value) ? '✓ Revenue' : '○ Learning'}
+                    </span>
+                </div>
+            `).join('');
+            
+            document.getElementById('missingSkillsList').innerHTML = missingSkills.map(s => `
+                <div class="flex items-center gap-2 p-2 rounded bg-red-500/10 border border-red-500/20">
+                    <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span class="text-sm text-red-400 font-medium">${s}</span>
+                </div>
+            `).join('');
+            
+            // Update bridge
+            document.getElementById('currentStateText').textContent = `$${currentRev.toLocaleString()}/month • ${revenueSkills} revenue skills`;
+            document.getElementById('targetStateText').textContent = `$${targetRev.toLocaleString()}/month • Stacked expertise`;
+            document.getElementById('missingLinkText').textContent = missingSkills[0] + ' & ' + missingSkills[1];
+            document.getElementById('missingLinkDesc').textContent = `You have ${revenueSkills} monetizable skills but lack the ${bottleneck} system to scale them.`;
+            document.getElementById('day31Action').innerHTML = `Master <span class="text-amber-400">${missingSkills[0]}</span> to convert your technical ability into revenue.`;
+            
+            // Show results
+            document.getElementById('inputStage').classList.add('hidden');
+            document.getElementById('resultsStage').classList.remove('hidden');
+            document.getElementById('progressBar').style.width = '40%';
+            
+            // Scroll to results
+            document.getElementById('resultsStage').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            alert('Welcome to Days 3-5 of the Clarity Audit! Check your email for the AI Integration Scorecard.');
+        }
+
+        function shareResults() {
+            const profile = document.getElementById('profileType').textContent;
+            const text = `I just discovered my Skill-Stack Profile: ${profile}. Turns out I've been building skills without building the revenue bridge. Find yours:`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Skill-Stack Profile',
+                    text: text,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(text + ' ' + window.location.href);
+                alert('Results copied to clipboard!');
+            }
+        }
+
+        // Animate progress bar on load
+        setTimeout(() => {
+            document.getElementById('progressBar').style.width = '20%';
+        }, 500);
+    </script>
+</body>
+</html>
